@@ -214,17 +214,16 @@ class TaskInProgress(Container):
         self.page.update()
 
     def confirm_exit(self, dialog):
-        with self.mutex:
-            with FileLock("scorers.xlsx.lock"):
-                df = read_excel("scorers.xlsx")
-                df.loc[df["ScorerName"] == self.username, "StartingScoreTeam1"] = self.scores["Team 1"]
-                df.loc[df["ScorerName"] == self.username, "StartingScoreTeam2"] = self.scores["Team 2"]
-                df.loc[df["ScorerName"] == self.username, "StartingGame"] = self.current_game
-                df.loc[df["ScorerName"] == self.username, "StartingRound"] = self.current_round
-                df.loc[df["ScorerName"] == self.username, "FirstServe"] = self.server
-                df.to_excel("scorers.xlsx", index=False)
-                self.close_dialog(dialog)
-                self.navigate_to("First")
+        with FileLock("scorers.xlsx.lock"):
+            df = read_excel("scorers.xlsx")
+            df.loc[df["ScorerName"] == self.username, "StartingScoreTeam1"] = self.scores["Team 1"]
+            df.loc[df["ScorerName"] == self.username, "StartingScoreTeam2"] = self.scores["Team 2"]
+            df.loc[df["ScorerName"] == self.username, "StartingGame"] = self.current_game
+            df.loc[df["ScorerName"] == self.username, "StartingRound"] = self.current_round
+            df.loc[df["ScorerName"] == self.username, "FirstServe"] = self.server
+            df.to_excel("scorers.xlsx", index=False)
+            self.close_dialog(dialog)
+            self.navigate_to("First")
     
     def handle_disconnect(self, e):
         with self.mutex:
