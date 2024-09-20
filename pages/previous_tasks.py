@@ -97,59 +97,54 @@ class PreviousTasks(Container):
         self.content.controls[0].visible = True
         self.content.controls[1].visible = False
         
-        with self.mutex:
-            with FileLock("Previous_tasks.lock"):
-                path = "Previous_tasks"
-                dir_list = os.listdir(path) 
-                if len(dir_list) > 0:
-                    for file in dir_list:
-                        filename = os.path.splitext(file)[0]
-                        self.content.controls[0].controls.append(ElevatedButton(str(filename), on_click=lambda e, file=filename: self.match_details(file)))
-                    self.content.controls[0].controls.append(Container(height=200))
-                self.content.controls[0].controls.append(ElevatedButton(text="Back", on_click=self.back_referee, width=300))       
+        path = "Previous_tasks"
+        dir_list = os.listdir(path) 
+        if len(dir_list) > 0:
+            for file in dir_list:
+                filename = os.path.splitext(file)[0]
+                self.content.controls[0].controls.append(ElevatedButton(str(filename), on_click=lambda e, file=filename: self.match_details(file)))
+            self.content.controls[0].controls.append(Container(height=200))
+        self.content.controls[0].controls.append(ElevatedButton(text="Back", on_click=self.back_referee, width=300))       
 
     
     def match_details(self, filename):
         self.content.controls[0].visible = False
         self.content.controls[1].visible = True
         
-        with self.mutex:
-            with FileLock(f"Previous_tasks\{filename}.xlsx.lock"):
-                df_pt = read_excel(f"Previous_tasks\{filename}.xlsx")
-                filtered_df = self.df[self.df['ScorerName'] == filename]
-                task = filtered_df.iloc[0].to_dict()
-                competition_type = task['CompetitionType']
-                
-                self.content.controls[1].controls[0].controls.append(Text(f"Scorer's Name: {task['ScorerName']}\n", size=20, text_align=TextAlign.CENTER))
-                self.content.controls[1].controls[0].controls.append(Text(f"Competition Type: {competition_type}\n", size=20, text_align=TextAlign.CENTER))
-
-                names = [task[name] for name in self.players_name]
-                if competition_type == "one-to-one":
-                    self.content.controls[1].controls[0].controls.append(Text(f"{names[0]} : {names[2]}\n", size=20, text_align=TextAlign.CENTER))
-                elif competition_type == "two-to-two":
-                    self.content.controls[1].controls[0].controls.append(Text(f"{names[0]} {names[1]} : {names[2]} {names[3]}\n", size=20, text_align=TextAlign.CENTER))
-                elif competition_type == "one-to-two":
-                    self.content.controls[1].controls[0].controls.append(Text(f"{names[0]} : {names[2]} {names[3]}\n", size=20, text_align=TextAlign.CENTER))
-                
-                self.content.controls[1].controls[0].controls.append(Text(f"Match Start Time: {task['MatchStartTime']}\n", size=20, text_align=TextAlign.CENTER))
-                
-                for i in range(3):
-                    for value in df_pt[f"Game {i+1} Round"]:
-                        if not isna(value):
-                            self.content.controls[1].controls[1].controls[i].controls[1].controls[0].controls.append(Text(str(int(value)), size=15))
-                        else:
-                            break
-                    for value in df_pt[f"Game {i+1} Team 1"]:
-                        if not isna(value):
-                            self.content.controls[1].controls[1].controls[i].controls[1].controls[1].controls.append(Text(str(int(value)), size=15))
-                        else:
-                            break
-                    for value in df_pt[f"Game {i+1} Team 2"]:
-                        if not isna(value):
-                            self.content.controls[1].controls[1].controls[i].controls[1].controls[2].controls.append(Text(str(int(value)), size=15))
-                        else:
-                            break
-                self.page.update()
+        df_pt = read_excel(f"Previous_tasks\{filename}.xlsx")
+        filtered_df = self.df[self.df['ScorerName'] == filename]
+        task = filtered_df.iloc[0].to_dict()
+        competition_type = task['CompetitionType']
+        
+        self.content.controls[1].controls[0].controls.append(Text(f"Scorer's Name: {task['ScorerName']}\n", size=20, text_align=TextAlign.CENTER))
+        self.content.controls[1].controls[0].controls.append(Text(f"Competition Type: {competition_type}\n", size=20, text_align=TextAlign.CENTER))
+        names = [task[name] for name in self.players_name]
+        if competition_type == "one-to-one":
+            self.content.controls[1].controls[0].controls.append(Text(f"{names[0]} : {names[2]}\n", size=20, text_align=TextAlign.CENTER))
+        elif competition_type == "two-to-two":
+            self.content.controls[1].controls[0].controls.append(Text(f"{names[0]} {names[1]} : {names[2]} {names[3]}\n", size=20, text_align=TextAlign.CENTER))
+        elif competition_type == "one-to-two":
+            self.content.controls[1].controls[0].controls.append(Text(f"{names[0]} : {names[2]} {names[3]}\n", size=20, text_align=TextAlign.CENTER))
+        
+        self.content.controls[1].controls[0].controls.append(Text(f"Match Start Time: {task['MatchStartTime']}\n", size=20, text_align=TextAlign.CENTER))
+        
+        for i in range(3):
+            for value in df_pt[f"Game {i+1} Round"]:
+                if not isna(value):
+                    self.content.controls[1].controls[1].controls[i].controls[1].controls[0].controls.append(Text(str(int(value)), size=15))
+                else:
+                    break
+            for value in df_pt[f"Game {i+1} Team 1"]:
+                if not isna(value):
+                    self.content.controls[1].controls[1].controls[i].controls[1].controls[1].controls.append(Text(str(int(value)), size=15))
+                else:
+                    break
+            for value in df_pt[f"Game {i+1} Team 2"]:
+                if not isna(value):
+                    self.content.controls[1].controls[1].controls[i].controls[1].controls[2].controls.append(Text(str(int(value)), size=15))
+                else:
+                    break
+        self.page.update()
         
     def back_referee(self, e):
         self.navigate_to("Referee")

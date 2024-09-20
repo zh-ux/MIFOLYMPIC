@@ -113,15 +113,13 @@ class CreateTask(Container):
         
         
         new_df = DataFrame([competition_data])
-        
-        with self.mutex:
-            with FileLock("scorers.xlsx.lock"):
-                try:
-                    existing_df = read_excel("scorers.xlsx")
-                    updated_df = concat([existing_df, new_df], ignore_index=True)
-                except FileNotFoundError:
-                    updated_df = new_df
-                
-                updated_df.to_excel("scorers.xlsx", index=False)
-                    
-                self.navigate_to("Referee")
+        with FileLock("scorers.xlsx.lock"):
+            try:
+                existing_df = read_excel("scorers.xlsx")
+                updated_df = concat([existing_df, new_df], ignore_index=True)
+            except FileNotFoundError:
+                updated_df = new_df
+            
+            updated_df.to_excel("scorers.xlsx", index=False)
+            
+        self.navigate_to("Referee")

@@ -43,30 +43,29 @@ class ScorerPage(Container):
     
     def load_tasks(self, username):
         self.username = username
-        with self.mutex:
-            with FileLock("scorers.xlsx.lock"):
-                try:
-                    df = read_excel("scorers.xlsx")
-                    if not df.empty:
-                        filtered_df = df[df['ScorerName'] == username]
-                        task = filtered_df.iloc[0].to_dict()
-                        self.content.controls[0].value = f"Scorer's Name: {task['ScorerName']}"
-                        self.content.controls[1].value = f"Competition Type: {task['CompetitionType']}"
-                        self.content.controls[3].value = f"Match Start Time: {task['MatchStartTime']}"
-                        self.content.controls[4].controls[0].value = f"Starting Score Team 1: {task['StartingScoreTeam1']}"
-                        self.content.controls[4].controls[1].value = f"Starting Score Team 2: {task['StartingScoreTeam2']}"
-                        
-                        player_names = ["Team 1 - Player 1 Name", "Team 1 - Player 2 Name", "Team 2 - Player 1 Name", "Team 2 - Player 2 Name"]
-                        for name in player_names:
-                            if not isna(task[name]):
-                                self.content.controls[2].controls.append(Text(f"{name}: {task[name]}", size=20))
-                        
-                    else:
-                        print("No tasks available.")
-                except FileNotFoundError:
-                    print("scorers.xlsx not found.")
+        
+        try:
+            df = read_excel("scorers.xlsx")
+            if not df.empty:
+                filtered_df = df[df['ScorerName'] == username]
+                task = filtered_df.iloc[0].to_dict()
+                self.content.controls[0].value = f"Scorer's Name: {task['ScorerName']}"
+                self.content.controls[1].value = f"Competition Type: {task['CompetitionType']}"
+                self.content.controls[3].value = f"Match Start Time: {task['MatchStartTime']}"
+                self.content.controls[4].controls[0].value = f"Starting Score Team 1: {task['StartingScoreTeam1']}"
+                self.content.controls[4].controls[1].value = f"Starting Score Team 2: {task['StartingScoreTeam2']}"
                 
-                self.page.update()
+                player_names = ["Team 1 - Player 1 Name", "Team 1 - Player 2 Name", "Team 2 - Player 1 Name", "Team 2 - Player 2 Name"]
+                for name in player_names:
+                    if not isna(task[name]):
+                        self.content.controls[2].controls.append(Text(f"{name}: {task[name]}", size=20))
+                
+            else:
+                print("No tasks available.")
+        except FileNotFoundError:
+            print("scorers.xlsx not found.")
+        
+        self.page.update()
     
     def reset(self):
         self.content.controls[2].controls.clear()

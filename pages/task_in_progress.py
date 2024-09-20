@@ -127,63 +127,60 @@ class TaskInProgress(Container):
         self.timer_interval = None
     
     def load_tasks(self, username):
-        with self.mutex:
-            self.username = username
-            self.file_path = f"Current_tasks\{username}.xlsx"
-            with FileLock("scorers.xlsx.lock"):
-                df = read_excel("scorers.xlsx")
-                filtered_df = df[df['ScorerName'] == username]
-                task = filtered_df.iloc[0].to_dict()
-                self.competition_type = str(task["CompetitionType"])
-                self.left_team = "team1"
-                self.right_team = "team2"
-                self.content.controls[0].controls[0].controls[1].controls[2].controls[0].value = f"Scorer's Name: {task['ScorerName']}"
-                self.content.controls[0].controls[0].controls[1].controls[3].controls[0].value = f"Competition Type: {task['CompetitionType']}"
-                self.content.controls[0].controls[0].controls[1].controls[4].controls[0].value = f"Match Start Time: {task['MatchStartTime']}"
-                
-                players_name = ["Team 1 - Player 1 Name", "Team 1 - Player 2 Name", "Team 2 - Player 1 Name", "Team 2 - Player 2 Name"]
-                team1_names = []
-                team2_names = []
-                if self.competition_type == "one-to-two":
-                    self.single_player = f"{task["Team 1 - Player 1 Name"]}"
-                for idx, name in enumerate(players_name, 1):
-                    self.content.controls[0].controls[0].controls[0].controls[idx].content.value = ""
-                    if not isna(task[name]):
-                        self.content.controls[0].controls[0].controls[0].controls[idx].content.value = f"{task[name]}"
-                        if idx == 1 or idx == 2:
-                            team1_names.append(f"({task[name]})")
-                        elif idx == 3 or idx == 4:
-                            team2_names.append(f"({task[name]})")
-
-                self.content.controls[0].controls[0].controls[1].controls[5].controls[0].value = f"Score Team 1 [{ ' '.join(team1_names) }] : "
-                self.content.controls[0].controls[0].controls[1].controls[6].controls[0].value = f"Score Team 2 [{ ' '.join(team2_names) }] : "
-                
-                self.scores = {"Team 1": int(task['StartingScoreTeam1']), "Team 2": int(task['StartingScoreTeam2'])}
-                self.content.controls[0].controls[0].controls[1].controls[5].controls[1].value = str(self.scores["Team 1"])
-                self.content.controls[0].controls[0].controls[1].controls[6].controls[1].value = str(self.scores["Team 2"])
-                if self.scores["Team 1"] >= 11 or self.scores["Team 2"] >= 11:
-                    self.middle_rest = True
-                self.color()
-                self.image()
-                if not isna(task['FirstServe']):
-                    self.server = int(task['FirstServe'])
-                    if self.server == 1 or self.server == 2:
-                        self.content.controls[0].controls[0].controls[0].controls[3].content.color = colors.BLACK
-                        self.content.controls[0].controls[0].controls[0].controls[4].content.color = colors.BLACK
-                    elif self.server == 3 or self.server == 4:
-                        self.content.controls[0].controls[0].controls[0].controls[1].content.color = colors.BLACK
-                        self.content.controls[0].controls[0].controls[0].controls[2].content.color = colors.BLACK
-                else:
-                    self.content.controls[0].controls[0].controls[0].controls[3].content.color = colors.BLACK
-                    self.content.controls[0].controls[0].controls[0].controls[4].content.color = colors.BLACK
-                if not isna(task['StartingGame']):
-                    self.current_game = int(task['StartingGame'])
-                if not isna(task['StartingRound']):
-                    self.start_round = int(task['StartingRound'])
-                    self.current_round = int(task['StartingRound'])
-                self.content.controls[0].controls[0].controls[1].controls[8].controls[0].value = f"Round: {self.current_round}"
-                self.check_server()
-                self.page.update()
+        self.username = username
+        self.file_path = f"Current_tasks\{username}.xlsx"
+        df = read_excel("scorers.xlsx")
+        filtered_df = df[df['ScorerName'] == username]
+        task = filtered_df.iloc[0].to_dict()
+        self.competition_type = str(task["CompetitionType"])
+        self.left_team = "team1"
+        self.right_team = "team2"
+        self.content.controls[0].controls[0].controls[1].controls[2].controls[0].value = f"Scorer's Name: {task['ScorerName']}"
+        self.content.controls[0].controls[0].controls[1].controls[3].controls[0].value = f"Competition Type: {task['CompetitionType']}"
+        self.content.controls[0].controls[0].controls[1].controls[4].controls[0].value = f"Match Start Time: {task['MatchStartTime']}"
+        
+        players_name = ["Team 1 - Player 1 Name", "Team 1 - Player 2 Name", "Team 2 - Player 1 Name", "Team 2 - Player 2 Name"]
+        team1_names = []
+        team2_names = []
+        if self.competition_type == "one-to-two":
+            self.single_player = f"{task["Team 1 - Player 1 Name"]}"
+        for idx, name in enumerate(players_name, 1):
+            self.content.controls[0].controls[0].controls[0].controls[idx].content.value = ""
+            if not isna(task[name]):
+                self.content.controls[0].controls[0].controls[0].controls[idx].content.value = f"{task[name]}"
+                if idx == 1 or idx == 2:
+                    team1_names.append(f"({task[name]})")
+                elif idx == 3 or idx == 4:
+                    team2_names.append(f"({task[name]})")
+        self.content.controls[0].controls[0].controls[1].controls[5].controls[0].value = f"Score Team 1 [{ ' '.join(team1_names) }] : "
+        self.content.controls[0].controls[0].controls[1].controls[6].controls[0].value = f"Score Team 2 [{ ' '.join(team2_names) }] : "
+        
+        self.scores = {"Team 1": int(task['StartingScoreTeam1']), "Team 2": int(task['StartingScoreTeam2'])}
+        self.content.controls[0].controls[0].controls[1].controls[5].controls[1].value = str(self.scores["Team 1"])
+        self.content.controls[0].controls[0].controls[1].controls[6].controls[1].value = str(self.scores["Team 2"])
+        if self.scores["Team 1"] >= 11 or self.scores["Team 2"] >= 11:
+            self.middle_rest = True
+        self.color()
+        self.image()
+        if not isna(task['FirstServe']):
+            self.server = int(task['FirstServe'])
+            if self.server == 1 or self.server == 2:
+                self.content.controls[0].controls[0].controls[0].controls[3].content.color = colors.BLACK
+                self.content.controls[0].controls[0].controls[0].controls[4].content.color = colors.BLACK
+            elif self.server == 3 or self.server == 4:
+                self.content.controls[0].controls[0].controls[0].controls[1].content.color = colors.BLACK
+                self.content.controls[0].controls[0].controls[0].controls[2].content.color = colors.BLACK
+        else:
+            self.content.controls[0].controls[0].controls[0].controls[3].content.color = colors.BLACK
+            self.content.controls[0].controls[0].controls[0].controls[4].content.color = colors.BLACK
+        if not isna(task['StartingGame']):
+            self.current_game = int(task['StartingGame'])
+        if not isna(task['StartingRound']):
+            self.start_round = int(task['StartingRound'])
+            self.current_round = int(task['StartingRound'])
+        self.content.controls[0].controls[0].controls[1].controls[8].controls[0].value = f"Round: {self.current_round}"
+        self.check_server()
+        self.page.update()
 
     def done(self, dialog):
         reminder_dialog = AlertDialog(
@@ -222,32 +219,28 @@ class TaskInProgress(Container):
             df.loc[df["ScorerName"] == self.username, "StartingRound"] = self.current_round
             df.loc[df["ScorerName"] == self.username, "FirstServe"] = self.server
             df.to_excel("scorers.xlsx", index=False)
-            self.close_dialog(dialog)
-            self.navigate_to("First")
+        self.close_dialog(dialog)
+        self.navigate_to("First")
     
     def handle_disconnect(self, e):
-        with self.mutex:
-            if self.visible:
-                with FileLock("scorers.xlsx.lock"):
-                    df = read_excel("scorers.xlsx")
-                    df.loc[df["ScorerName"] == self.username, "StartingScoreTeam1"] = self.scores["Team 1"]
-                    df.loc[df["ScorerName"] == self.username, "StartingScoreTeam2"] = self.scores["Team 2"]
-                    df.loc[df["ScorerName"] == self.username, "StartingGame"] = self.current_game
-                    df.loc[df["ScorerName"] == self.username, "StartingRound"] = self.current_round
-                    df.loc[df["ScorerName"] == self.username, "FirstServe"] = self.server
-                    df.to_excel("scorers.xlsx", index=False)
+        if self.visible:
+            df = read_excel("scorers.xlsx")
+            df.loc[df["ScorerName"] == self.username, "StartingScoreTeam1"] = self.scores["Team 1"]
+            df.loc[df["ScorerName"] == self.username, "StartingScoreTeam2"] = self.scores["Team 2"]
+            df.loc[df["ScorerName"] == self.username, "StartingGame"] = self.current_game
+            df.loc[df["ScorerName"] == self.username, "StartingRound"] = self.current_round
+            df.loc[df["ScorerName"] == self.username, "FirstServe"] = self.server
+        df.to_excel("scorers.xlsx", index=False)
     
     def handle_close(self, e):
-        with self.mutex:
-            if self.visible:
-                with FileLock("scorers.xlsx.lock"):
-                    df = read_excel("scorers.xlsx")
-                    df.loc[df["ScorerName"] == self.username, "StartingScoreTeam1"] = self.scores["Team 1"]
-                    df.loc[df["ScorerName"] == self.username, "StartingScoreTeam2"] = self.scores["Team 2"]
-                    df.loc[df["ScorerName"] == self.username, "StartingGame"] = self.current_game
-                    df.loc[df["ScorerName"] == self.username, "StartingRound"] = self.current_round
-                    df.loc[df["ScorerName"] == self.username, "FirstServe"] = self.server
-                    df.to_excel("scorers.xlsx", index=False)
+        if self.visible:
+            df = read_excel("scorers.xlsx")
+            df.loc[df["ScorerName"] == self.username, "StartingScoreTeam1"] = self.scores["Team 1"]
+            df.loc[df["ScorerName"] == self.username, "StartingScoreTeam2"] = self.scores["Team 2"]
+            df.loc[df["ScorerName"] == self.username, "StartingGame"] = self.current_game
+            df.loc[df["ScorerName"] == self.username, "StartingRound"] = self.current_round
+            df.loc[df["ScorerName"] == self.username, "FirstServe"] = self.server
+        df.to_excel("scorers.xlsx", index=False)
         
     def init_page(self, page: Page):
         self.page = page
@@ -464,52 +457,51 @@ class TaskInProgress(Container):
                     self.right_team_swap(e=None)
             
     def team1_score(self, e):
+        if self.current_round == self.start_round:
+            for i in range(1, 5):
+                self.first_position[0][i-1] = self.content.controls[0].controls[0].controls[0].controls[i].content.value
+                self.first_position[1][i-1] = self.content.controls[0].controls[0].controls[0].controls[i].content.color
+        self.scores["Team 1"] += 1
         with self.mutex:
-            if self.current_round == self.start_round:
-                for i in range(1, 5):
-                    self.first_position[0][i-1] = self.content.controls[0].controls[0].controls[0].controls[i].content.value
-                    self.first_position[1][i-1] = self.content.controls[0].controls[0].controls[0].controls[i].content.color
-            self.scores["Team 1"] += 1
             self.match_data[0].append(1)
             self.match_data[1].append(0)
-            self.content.controls[0].controls[0].controls[1].controls[5].controls[1].value = str(self.scores["Team 1"])
-            self.current_round += 1
-            self.content.controls[0].controls[0].controls[1].controls[8].controls[0].value = f"Round: {self.current_round}"
-            self.change_server()
-            self.update_score()
-            self.check_score()
-            self.page.update()
+        self.content.controls[0].controls[0].controls[1].controls[5].controls[1].value = str(self.scores["Team 1"])
+        self.current_round += 1
+        self.content.controls[0].controls[0].controls[1].controls[8].controls[0].value = f"Round: {self.current_round}"
+        self.change_server()
+        self.update_score()
+        self.check_score()
+        self.page.update()
 
     def team2_score(self, e):
+        if self.current_round == self.start_round:
+            for i in range(1, 5):
+                self.first_position[0][i-1] = self.content.controls[0].controls[0].controls[0].controls[i].content.value
+                self.first_position[1][i-1] = self.content.controls[0].controls[0].controls[0].controls[i].content.color
+        self.scores["Team 2"] += 1
         with self.mutex:
-            if self.current_round == self.start_round:
-                for i in range(1, 5):
-                    self.first_position[0][i-1] = self.content.controls[0].controls[0].controls[0].controls[i].content.value
-                    self.first_position[1][i-1] = self.content.controls[0].controls[0].controls[0].controls[i].content.color
-            self.scores["Team 2"] += 1
             self.match_data[1].append(1)
             self.match_data[0].append(0)
-            self.content.controls[0].controls[0].controls[1].controls[6].controls[1].value = str(self.scores["Team 2"])
-            self.current_round += 1
-            self.content.controls[0].controls[0].controls[1].controls[8].controls[0].value = f"Round: {self.current_round}"
-            self.change_server()
-            self.update_score()
-            self.check_score()
-            self.page.update()
+        self.content.controls[0].controls[0].controls[1].controls[6].controls[1].value = str(self.scores["Team 2"])
+        self.current_round += 1
+        self.content.controls[0].controls[0].controls[1].controls[8].controls[0].value = f"Round: {self.current_round}"
+        self.change_server()
+        self.update_score()
+        self.check_score()
+        self.page.update()
     
     def update_score(self):
-        with FileLock(self.file_path+".lock"):
-            if not os.path.exists(self.file_path):
-                df = DataFrame(columns=[
-                    "Game 1 Round", "Game 1 Team 1", "Game 1 Team 2",
-                    "Game 2 Round", "Game 2 Team 1", "Game 2 Team 2",
-                    "Game 3 Round", "Game 3 Team 1", "Game 3 Team 2",
-                    "Game 1 Scores", "Game 2 Scores", "Game 3 Scores"
-                ])
-                df.to_excel(self.file_path, index=False)
-            
-            df = read_excel(self.file_path)
-            round_columns = self.get_round_column()
+        if not os.path.exists(self.file_path):
+            df = DataFrame(columns=[
+                "Game 1 Round", "Game 1 Team 1", "Game 1 Team 2",
+                "Game 2 Round", "Game 2 Team 1", "Game 2 Team 2",
+                "Game 3 Round", "Game 3 Team 1", "Game 3 Team 2",
+                "Game 1 Scores", "Game 2 Scores", "Game 3 Scores"
+            ])
+            df.to_excel(self.file_path, index=False)
+        
+        df = read_excel(self.file_path)
+        round_columns = self.get_round_column()
         
         if self.current_round <= len(df):
             df.at[self.current_round - 1, round_columns["Round"]] = self.current_round
@@ -525,7 +517,8 @@ class TaskInProgress(Container):
         
         df.at[0, round_columns["Scores"]] = f"{self.scores['Team 1']}:{self.scores['Team 2']}"
         
-        df.to_excel(self.file_path, index=False)
+        with FileLock(self.file_path+".lock"):
+            df.to_excel(self.file_path, index=False)
   
     def get_round_column(self):
         columns = {
@@ -538,6 +531,10 @@ class TaskInProgress(Container):
     def undo(self, dialog=None):
         with self.mutex:
             if self.current_round > self.start_round:
+                
+                if (self.scores["Team 1"] == 11 and self.scores["Team 2"] < 11) or (self.scores["Team 2"] == 11 and self.scores["Team 1"] < 11):
+                    self.change_side(e=None)
+                    self.middle_rest = False
                 
                 if self.scores["Team 1"] == 21 and self.scores["Team 2"] <= 20:
                     self.games["Team 1"] -= 1
@@ -569,10 +566,6 @@ class TaskInProgress(Container):
                 self.content.controls[0].controls[0].controls[1].controls[8].controls[0].value = f"Round: {self.current_round}"
                 self.match_data[0].pop()
                 self.match_data[1].pop()
-                
-                if (self.scores["Team 1"] == 11 and self.scores["Team 2"] < 11) or (self.scores["Team 2"] == 11 and self.scores["Team 1"] < 11):
-                    self.change_side(e=None)
-                    self.middle_rest = False
 
                 if self.current_round == self.start_round:
                     for i in range(1, 5):

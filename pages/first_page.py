@@ -37,16 +37,12 @@ class FirstPage(Container):
             self.show_error_dialog("Username not found! Please try again.")
 
     def is_referee(self, username):
-        with self.mutex:
-            with FileLock("referees.xlsx.lock"):
-                referees_df = read_excel('referees.xlsx')
-                return username in referees_df['RefereeName'].values
+        referees_df = read_excel('referees.xlsx')
+        return username in referees_df['RefereeName'].values
 
     def is_scorer(self, username):
-        with self.mutex:
-            with FileLock("scorers.xlsx.lock"):
-                scorers_df = read_excel('scorers.xlsx')
-                return username in scorers_df['ScorerName'].values
+        scorers_df = read_excel('scorers.xlsx')
+        return username in scorers_df['ScorerName'].values
 
     def show_error_dialog(self, message):
         dialog = AlertDialog(

@@ -63,12 +63,11 @@ class AllTasks(Container):
         self.page.update()
         
     def delete_task(self, index, dialog):
-        with self.mutex:
-            with FileLock("scorers.xlsx.lock"):
-                self.df = self.df.drop(index).reset_index(drop=True)
-                self.df.to_excel("scorers.xlsx", index=False)
-                self.close_dialog(dialog)
-            self.load_tasks()
+        with FileLock("scorers.xlsx.lock"):
+            self.df = self.df.drop(index).reset_index(drop=True)
+            self.df.to_excel("scorers.xlsx", index=False)
+        self.close_dialog(dialog)
+        self.load_tasks()
 
     def close_dialog(self, dialog):
         dialog.open = False
