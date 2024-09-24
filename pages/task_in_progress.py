@@ -128,7 +128,7 @@ class TaskInProgress(Container):
     
     def load_tasks(self, username):
         self.username = username
-        self.file_path = f"Current_tasks\{username}.xlsx"
+        self.file_path = f"Current_tasks/{username}.xlsx"
         df = read_excel("scorers.xlsx")
         filtered_df = df[df['ScorerName'] == username]
         task = filtered_df.iloc[0].to_dict()
@@ -211,13 +211,13 @@ class TaskInProgress(Container):
         self.page.update()
 
     def confirm_exit(self, dialog):
+        df = read_excel("scorers.xlsx")
+        df.loc[df["ScorerName"] == self.username, "StartingScoreTeam1"] = self.scores["Team 1"]
+        df.loc[df["ScorerName"] == self.username, "StartingScoreTeam2"] = self.scores["Team 2"]
+        df.loc[df["ScorerName"] == self.username, "StartingGame"] = self.current_game
+        df.loc[df["ScorerName"] == self.username, "StartingRound"] = self.current_round
+        df.loc[df["ScorerName"] == self.username, "FirstServe"] = self.server
         with FileLock("scorers.xlsx.lock"):
-            df = read_excel("scorers.xlsx")
-            df.loc[df["ScorerName"] == self.username, "StartingScoreTeam1"] = self.scores["Team 1"]
-            df.loc[df["ScorerName"] == self.username, "StartingScoreTeam2"] = self.scores["Team 2"]
-            df.loc[df["ScorerName"] == self.username, "StartingGame"] = self.current_game
-            df.loc[df["ScorerName"] == self.username, "StartingRound"] = self.current_round
-            df.loc[df["ScorerName"] == self.username, "FirstServe"] = self.server
             df.to_excel("scorers.xlsx", index=False)
         self.close_dialog(dialog)
         self.navigate_to("First")
@@ -230,7 +230,8 @@ class TaskInProgress(Container):
             df.loc[df["ScorerName"] == self.username, "StartingGame"] = self.current_game
             df.loc[df["ScorerName"] == self.username, "StartingRound"] = self.current_round
             df.loc[df["ScorerName"] == self.username, "FirstServe"] = self.server
-        df.to_excel("scorers.xlsx", index=False)
+            with FileLock("scorers.xlsx.lock"):
+                df.to_excel("scorers.xlsx", index=False)
     
     def handle_close(self, e):
         if self.visible:
@@ -240,7 +241,8 @@ class TaskInProgress(Container):
             df.loc[df["ScorerName"] == self.username, "StartingGame"] = self.current_game
             df.loc[df["ScorerName"] == self.username, "StartingRound"] = self.current_round
             df.loc[df["ScorerName"] == self.username, "FirstServe"] = self.server
-        df.to_excel("scorers.xlsx", index=False)
+            with FileLock("scorers.xlsx.lock"):
+                df.to_excel("scorers.xlsx", index=False)
         
     def init_page(self, page: Page):
         self.page = page
